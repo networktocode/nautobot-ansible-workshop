@@ -48,7 +48,7 @@
 
     # Nautobot clones this itself to discover the Jobs in jobs/ — so it must be
     # a URL Nautobot's worker can reach, not a local path.
-    lab_repo_url: https://github.com/igpaec/nautobot-ansible-workshop.git
+    lab_repo_url: https://github.com/networktocode/nautobot-ansible-workshop.git
     lab_repo_branch: main
 
     # These MUST match clab/workshop.clab.yml's pinned mgmt-ipv4 values, and the

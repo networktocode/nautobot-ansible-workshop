@@ -21,7 +21,24 @@ ee/context/
 *.token
 secrets.yml
 
+# AI / session files. Deliberate, and a rule rather than a preference:
+# CLAUDE.md, .claude/ and session artifacts live ONE LEVEL UP, in the container
+# directory that holds all three workshop repos. This repo is bound for public
+# release, and build-time guidance has no place in it. Ignored so the rule
+# cannot be broken by accident.
+CLAUDE.md
+.claude/
+nimbalyst-local/
+*.plan.md
+
 # Editor / OS
 .DS_Store
+.AppleDouble
+.LSOverride
+Thumbs.db
+desktop.ini
 .vscode/
 .idea/
+*.swp
+*.swo
+*~

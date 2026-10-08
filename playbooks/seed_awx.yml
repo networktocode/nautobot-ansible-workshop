@@ -72,7 +72,7 @@
 
     org: Default
     project_name: Nautobot Ansible Workshop
-    scm_url: https://github.com/igpaec/nautobot-ansible-workshop.git
+    scm_url: https://github.com/networktocode/nautobot-ansible-workshop.git
     scm_branch: main
 
     # Built from ee/execution-environment.yml and loaded into minikube with
@@ -95,16 +95,51 @@
     # service, and which one is correct depends entirely on who is asking.
     nautobot_url_local: "{{ lookup('env', 'NAUTOBOT_URL') | default('http://localhost:8080', true) }}"
 
+    # 🔴 HOW NAUTOBOT RUNS ON THIS HOST — and it changes three things below.
+    #
+    #   compose   nautobot-docker-compose: Nautobot is a set of containers.
+    #             The hand-built stack. The default.
+    #   native    systemd services from a venv under /opt/nautobot. The
+    #             workshop image built with Packer.
+    #
+    # The two differ in exactly three ways: the address Nautobot uses to reach
+    # AWX, the file the AWX connection details are written to, and how Nautobot
+    # is restarted to pick them up. Everything else in this playbook is shared.
+    #
+    # The image sets NAUTOBOT_DEPLOYMENT=native in the workshop user's shell
+    # profile, so re-running this playbook there needs no extra arguments.
+    nautobot_deployment: "{{ lookup('env', 'NAUTOBOT_DEPLOYMENT') | default('compose', true) }}"
+    nautobot_env_file_native: /opt/nautobot/nautobot.env
+
     # 🔴 The address NAUTOBOT'S CELERY WORKER uses to reach AWX — the same one
     # Lab 3's Job Button uses, and for the same reason. Never a bridge-gateway
-    # literal: those depend on Docker network creation order and would differ
-    # between stacks. See troubleshooting.md § 8.
-    awx_url_from_nautobot: http://host.docker.internal:8013
+    # literal that depends on Docker network creation order. See
+    # troubleshooting.md § 8.
+    #
+    # compose  host.docker.internal resolves inside the containers to the
+    #          compose bridge gateway, which is the host.
+    # native   Nautobot already runs ON the host, so the obvious answer is
+    #          localhost — and it is WRONG. Nautobot 3.x validates webhook
+    #          URLs against an SSRF block-list that rejects loopback
+    #          unconditionally, so a localhost payload_url breaks Lab 4.
+    #          192.168.49.1 is the host's own address on minikube's pinned
+    #          network: private rather than loopback, so it passes, and it
+    #          reaches the port-forward, which listens on 0.0.0.0:8013.
+    awx_url_from_nautobot: "{{ 'http://192.168.49.1:8013' if nautobot_deployment == 'native' else 'http://host.docker.internal:8013' }}"
 
     device_username: admin
     device_password: admin
 
   tasks:
+    - name: Check NAUTOBOT_DEPLOYMENT is a shape this playbook knows
+      ansible.builtin.assert:
+        that: nautobot_deployment in ['compose', 'native']
+        fail_msg: >-
+          NAUTOBOT_DEPLOYMENT is '{{ nautobot_deployment }}'. It must be
+          'compose' (nautobot-docker-compose, the default) or 'native'
+          (systemd services under /opt/nautobot, as in the workshop image).
+        quiet: true
+
     # Pre-flight against the thing that ACTUALLY breaks. Credentials are static,
     # so they are never the problem; the port-forward is, constantly. It is a
     # foreground process that dies on SSH disconnect and on reboot, and without
@@ -833,6 +868,19 @@
       when: (webhook_lookup.json.results | default([])) | length == 1
 
 
+    # ------------------------------------- Lab 3: AWX access for the worker
+    # The Job Button runs its receive_job_button() in the celery WORKER, which
+    # reads AWX_HOST, AWX_TOKEN and AWX_JOB_TEMPLATE from its environment. How
+    # that environment is set depends on how Nautobot runs — see
+    # nautobot_deployment in vars. Exactly one of the two blocks below runs.
+    #
+    # Both use blockinfile (not copy/lineinfile) so re-running replaces the
+    # block in place rather than appending a second copy — this playbook mints
+    # a new token every run, and stale AWX_TOKEN lines would shadow
+    # unpredictably.
+
+    # ---- compose
+    #
     # 🔴 IT MUST GO IN creds.env — NOT A NEW FILE.
     #
     # An earlier revision wrote environments/awx.env and told the operator to
@@ -852,21 +900,18 @@
     # and `nautobot`, `celery_worker` and `celery_beat` all merge that anchor.
     # So anything written to creds.env reaches the worker with no compose edit.
     # creds.env over local.env because AWX_TOKEN is a live credential.
-    #
-    # blockinfile (not copy/lineinfile) so re-running replaces the block in
-    # place rather than appending a second copy — this playbook mints a new
-    # token every run, and stale AWX_TOKEN lines would shadow unpredictably.
-    - name: Put the AWX connection details where the celery worker will see them
+    - name: Put the AWX connection details where the celery worker will see them (compose)
       ansible.builtin.blockinfile:
         path: "{{ lookup('env', 'HOME') }}/nautobot-docker-compose/environments/creds.env"
         marker: "# {mark} ANSIBLE MANAGED BLOCK — workshop AWX access"
         create: true
         mode: "0600"
         block: |
-          AWX_HOST=http://host.docker.internal:8013
+          AWX_HOST={{ awx_url_from_nautobot }}
           AWX_TOKEN={{ awx_token.ansible_facts.controller_token.token }}
           AWX_JOB_TEMPLATE=Write back to Nautobot
       register: awx_env
+      when: nautobot_deployment == 'compose'
 
     # `docker compose restart` is NOT enough — it reuses the existing container,
     # which keeps the environment it was created with. The containers have to be
@@ -875,27 +920,81 @@
     #
     # Full path to invoke: this playbook may run from a shell whose PATH does
     # not include the /opt/ansible venv.
-    - name: Recreate the Nautobot containers so they pick up the new environment
+    - name: Recreate the Nautobot containers so they pick up the new environment (compose)
       ansible.builtin.shell: /opt/ansible/bin/invoke stop && /opt/ansible/bin/invoke start
       args:
         chdir: "{{ lookup('env', 'HOME') }}/nautobot-docker-compose"
-      when: awx_env is changed
+      when: nautobot_deployment == 'compose' and awx_env is changed
       changed_when: true
 
-    # Verify on the WORKER, not the web container. The Job Button runs its
-    # receive_job_button() in celery, so the web container having the variable
-    # proves nothing — and the earlier failure looked exactly like that.
+    # Verify on the WORKER, not the web container. The web container having the
+    # variable proves nothing — and the earlier failure looked exactly like that.
     #
     # Container name is {project}-{service}-1; nautobot-docker-compose pins the
     # project to "nautobot_docker_compose" in tasks.py, so this is stable.
-    - name: Confirm the celery worker can actually see AWX_HOST
+    - name: Confirm the celery worker can actually see AWX_HOST (compose)
       ansible.builtin.command: docker exec nautobot_docker_compose-celery_worker-1 printenv AWX_HOST
       register: worker_env
       changed_when: false
-      failed_when: "'host.docker.internal' not in (worker_env.stdout | default(''))"
+      failed_when: awx_url_from_nautobot not in (worker_env.stdout | default(''))
       retries: 12
       delay: 10
       until: worker_env is succeeded
+      when: nautobot_deployment == 'compose'
+
+    # ---- native
+    #
+    # The three Nautobot units (nautobot, nautobot-worker, nautobot-scheduler)
+    # each load /opt/nautobot/nautobot.env as their systemd EnvironmentFile, so
+    # that is the one file to write. It belongs to the `nautobot` user, hence
+    # become — the workshop user has passwordless sudo on the image.
+    #
+    # The job-template name is QUOTED here and not in the compose block: systemd
+    # strips the quotes, and quoting a value with spaces is the unambiguous form
+    # for an EnvironmentFile.
+    - name: Put the AWX connection details in Nautobot's environment file (native)
+      ansible.builtin.blockinfile:
+        path: "{{ nautobot_env_file_native }}"
+        marker: "# {mark} ANSIBLE MANAGED BLOCK — workshop AWX access"
+        block: |
+          AWX_HOST={{ awx_url_from_nautobot }}
+          AWX_TOKEN={{ awx_token.ansible_facts.controller_token.token }}
+          AWX_JOB_TEMPLATE="Write back to Nautobot"
+      become: true
+      register: awx_env_native
+      when: nautobot_deployment == 'native'
+
+    # A systemd restart re-reads the EnvironmentFile, so unlike compose there
+    # is no "restart is not enough" trap here.
+    - name: Restart the Nautobot services so they pick up the new environment (native)
+      ansible.builtin.systemd_service:
+        name: "{{ item }}"
+        state: restarted
+      loop:
+        - nautobot
+        - nautobot-worker
+        - nautobot-scheduler
+      become: true
+      when: nautobot_deployment == 'native' and awx_env_native is changed
+
+    # Same reasoning as the compose check: read the WORKER's live environment,
+    # not the file. /proc/<pid>/environ is what the running process actually
+    # has; MainPID is 0 until the restart settles, which the retries absorb.
+    - name: Confirm the celery worker can actually see AWX_HOST (native)
+      ansible.builtin.shell: >-
+        set -o pipefail &&
+        tr '\0' '\n' < /proc/$(systemctl show -p MainPID --value nautobot-worker)/environ
+        | grep '^AWX_HOST='
+      args:
+        executable: /bin/bash
+      become: true
+      register: worker_env_native
+      changed_when: false
+      failed_when: awx_url_from_nautobot not in (worker_env_native.stdout | default(''))
+      retries: 12
+      delay: 10
+      until: worker_env_native is succeeded
+      when: nautobot_deployment == 'native'
 
     # ------------------------------------------------------------ verification
     - name: Next step

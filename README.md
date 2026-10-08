@@ -39,7 +39,7 @@ nautobot-ansible-workshop/
 ### 1. Devices
 
 ```bash
-docker import cEOSarm-lab-4.34.2F.tar.xz ceos:4.34.2F
+docker import cEOSarm-lab-4.33.10M.tar.xz ceos:4.33.10M
 sudo containerlab deploy -t clab/workshop.clab.yml
 sudo containerlab inspect -t clab/workshop.clab.yml
 ```

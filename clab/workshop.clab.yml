@@ -2,8 +2,8 @@
 #
 # Import the image first (cEOS ships as a filesystem tarball, so `docker import`,
 # NOT `docker load`):
-#   docker import cEOSarm-lab-4.34.2F.tar.xz ceos:4.34.2F
-#   docker image inspect ceos:4.34.2F --format '{{.Architecture}}/{{.Os}}'
+#   docker import cEOSarm-lab-4.33.10M.tar.xz ceos:4.33.10M
+#   docker image inspect ceos:4.33.10M --format '{{.Architecture}}/{{.Os}}'
 #
 # Deploy:
 #   sudo containerlab deploy -t clab/workshop.clab.yml
@@ -15,7 +15,7 @@
 # — reversed, and different on the next run.
 #
 # NOTE: the ARM64 cEOS build is used on Apple Silicon. Lab infrastructure may be
-# x86_64 and needs the non-ARM image at the SAME version (4.34.2F) so findings
+# x86_64 and needs the non-ARM image at the SAME version (4.33.10M) so findings
 # transfer. The image tag is identical either way.
 
 name: workshop
@@ -28,12 +28,12 @@ topology:
   nodes:
     leaf1:
       kind: arista_ceos
-      image: ceos:4.34.2F
+      image: ceos:4.33.10M
       mgmt-ipv4: 172.20.20.11
       restart-policy: always
     leaf2:
       kind: arista_ceos
-      image: ceos:4.34.2F
+      image: ceos:4.33.10M
       mgmt-ipv4: 172.20.20.12
       restart-policy: always
 

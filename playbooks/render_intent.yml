@@ -5,7 +5,7 @@
 # exactly the shape the template needs. That is the "one query drives the config"
 # beat of Lab 2.
 #   HOW TO RUN:
-#   export NAUTOBOT_URL="http://localhost:8080"
+#   export NAUTOBOT_URL="http://localhost:8001"
 #   export NAUTOBOT_TOKEN="<token>"
 #   ansible-playbook -i inventory/nautobot.yml playbooks/render_intent.yml
 #   NOTE: no -u / -k needed. Every task is delegated to localhost, so this never

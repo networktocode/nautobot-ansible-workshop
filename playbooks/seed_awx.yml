@@ -86,14 +86,14 @@
     # the minikube gateway, which is only stable because § 3 of 15-single-stack
     # pins the subnet with --subnet=192.168.49.0/24. Assert it before trusting it:
     #   minikube -p awx ssh -- ip route | grep default
-    nautobot_url_from_pods: http://192.168.49.1:8080
+    nautobot_url_from_pods: http://192.168.49.1:8001
     nautobot_token: "0123456789abcdef0123456789abcdef01234567"
 
     # Nautobot as seen from THIS playbook, running on the VM. Different from
     # nautobot_url_from_pods above, and different again from the address AWX
     # has in Nautobot's webhook (host.docker.internal). Three names for one
     # service, and which one is correct depends entirely on who is asking.
-    nautobot_url_local: "{{ lookup('env', 'NAUTOBOT_URL') | default('http://localhost:8080', true) }}"
+    nautobot_url_local: "{{ lookup('env', 'NAUTOBOT_URL') | default('http://localhost:8001', true) }}"
 
     # 🔴 HOW NAUTOBOT RUNS ON THIS HOST — and it changes three things below.
     #

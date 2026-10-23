@@ -12,7 +12,7 @@
 #   Verified present in Nautobot 3.2.2 source:
 #   /api/extras/dynamic-groups/<pk>/members/   (DynamicGroupViewSet.members)
 #   HOW TO RUN:
-#   export NAUTOBOT_URL="http://localhost:8080"
+#   export NAUTOBOT_URL="http://localhost:8001"
 #   export NAUTOBOT_TOKEN="<token>"
 #   ansible-playbook -i inventory/nautobot.yml playbooks/target_dynamic_group.yml -e dynamic_group_name="leaf-devices-dc1" -u admin -k
 #   NOTE ON add_host: because these hosts already exist in the Nautobot inventory,

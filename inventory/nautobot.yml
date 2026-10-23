@@ -14,7 +14,7 @@
 # Inventories during provisioning and have attendees switch the Job Template's
 # Inventory field, which uses no file detection.
 #   HOW TO USE (locally):
-#   export NAUTOBOT_URL="http://localhost:8080"
+#   export NAUTOBOT_URL="http://localhost:8001"
 #   export NAUTOBOT_TOKEN="<token>"
 #   ansible-inventory -i inventory/nautobot.yml --graph
 #   ansible-inventory -i inventory/nautobot.yml --host leaf1

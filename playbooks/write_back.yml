@@ -11,7 +11,7 @@
 # to a custom field that does not exist fails.
 #
 # HOW TO RUN:
-#   export NAUTOBOT_URL="http://localhost:8080"
+#   export NAUTOBOT_URL="http://localhost:8001"
 #   export NAUTOBOT_TOKEN="<token>"
 #   ansible-playbook -i inventory/nautobot.yml playbooks/write_back.yml -u admin -k
 #

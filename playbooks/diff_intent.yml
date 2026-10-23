@@ -6,7 +6,7 @@
 # Stage 2b, and compares it to the running config. No dependency on having run
 # render_intent.yml first.
 #   HOW TO RUN — check mode is the DEFAULT, so this is safe:
-#   export NAUTOBOT_URL="http://localhost:8080"
+#   export NAUTOBOT_URL="http://localhost:8001"
 #   export NAUTOBOT_TOKEN="<token>"
 #   ansible-playbook -i inventory/nautobot.yml playbooks/diff_intent.yml -u admin -k --diff
 #   To actually apply what the diff showed:

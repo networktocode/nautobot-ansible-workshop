@@ -52,7 +52,7 @@
     # Same defaults-with-env-override pattern as both seed playbooks — see the
     # header of seed_awx.yml for why these are literals rather than required
     # environment variables.
-    nb_url: "{{ lookup('env', 'NAUTOBOT_URL') | default('http://localhost:8080', true) }}"
+    nb_url: "{{ lookup('env', 'NAUTOBOT_URL') | default('http://localhost:8001', true) }}"
     nb_token: "{{ lookup('env', 'NAUTOBOT_TOKEN') | default('0123456789abcdef0123456789abcdef01234567', true) }}"
     awx_url: "{{ lookup('env', 'CONTROLLER_HOST') | default('http://localhost:8013', true) }}"
     awx_username: "{{ lookup('env', 'CONTROLLER_USERNAME') | default('admin', true) }}"

@@ -58,7 +58,7 @@
   gather_facts: false
 
   vars:
-    nb_url: "{{ lookup('env', 'NAUTOBOT_URL') | default('http://localhost:8080', true) }}"
+    nb_url: "{{ lookup('env', 'NAUTOBOT_URL') | default('http://localhost:8001', true) }}"
     nb_token: "{{ lookup('env', 'NAUTOBOT_TOKEN') | default('0123456789abcdef0123456789abcdef01234567', true) }}"
 
     # The status that means "this device is ready to be turned up". Anything

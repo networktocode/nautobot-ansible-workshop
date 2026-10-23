@@ -13,7 +13,7 @@
 # -u/-k: auth is the Nautobot API token, not SSH.
 #
 # 🔴 NAUTOBOT_URL / NAUTOBOT_TOKEN ARE OPTIONAL OVERRIDES, NOT REQUIREMENTS.
-# Both values are deterministic — every stack is http://localhost:8080 with the
+# Both values are deterministic — every stack is http://localhost:8001 with the
 # pinned literal token from nautobot-ansible-workshop-instructor/00-credentials-and-addressing.md. Requiring
 # them as env vars made the playbook depend on shell state that does not survive
 # a new SSH session, `sudo -i`, or any non-interactive shell that skips .bashrc.
@@ -39,7 +39,7 @@
     # back as an empty string, not undefined, and a bare `| default(x)` would
     # happily pass "" straight through to every task.
     nb: &nb
-      url: "{{ lookup('env', 'NAUTOBOT_URL') | default('http://localhost:8080', true) }}"
+      url: "{{ lookup('env', 'NAUTOBOT_URL') | default('http://localhost:8001', true) }}"
       token: "{{ lookup('env', 'NAUTOBOT_TOKEN') | default('0123456789abcdef0123456789abcdef01234567', true) }}"
 
     site_name: DC1

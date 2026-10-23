@@ -13,6 +13,7 @@
 #   seed_nautobot.yml  Nautobot objects, via `--tags reset`
 #   this playbook      1. write-back state on the devices (Labs 3 and 4)
 #                      2. the AWX Job Template's Inventory field (Lab 1e)
+#                         and its survey switch (Lab 2h)
 #
 # It creates nothing: every object exists from provisioning, and the labs only
 # change existing objects. It never rebuilds AWX, and it does not run
@@ -47,9 +48,11 @@
 
     devices: [leaf1, leaf2]
 
-    # The only setting that varies by lab. Lab 1e repoints the job template
-    # from the static inventory to the Nautobot-backed one, so Labs 0-1 expect
-    # `Static (Lab 0)` and Labs 2-4 expect `Nautobot (Lab 1)`.
+    # The two settings that vary by lab, both on the `Onboard Site (survey)`
+    # job template. Lab 1e repoints it from the static inventory to the
+    # Nautobot-backed one, so Labs 0-1 expect `Static (Lab 0)` and Labs 2-4
+    # expect `Nautobot (Lab 1)`. Lab 2h switches its survey off, so Labs 0-2
+    # expect the survey on and Labs 3-4 expect it off.
     inventory_for_lab:
       "0": Static (Lab 0)
       "1": Static (Lab 0)
@@ -103,11 +106,12 @@
       when: (item.json.results | default([])) | length == 1
 
     # ------------------------------------------------------ AWX: the inventory flip
-    - name: Point the survey job template at the inventory this lab expects
+    - name: Set the survey job template's inventory and survey as this lab expects
       awx.awx.job_template:
         name: Onboard Site (survey)
         organization: Default
         inventory: "{{ inventory_for_lab[lab | string] }}"
+        survey_enabled: "{{ (lab | int) <= 2 }}"
         state: present
 
     # Re-sync so the Nautobot inventory's hosts are current rather than left

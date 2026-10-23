@@ -52,6 +52,6 @@ pynautobot==3.1.1
 PyYAML==6.0.3
 requests==2.34.2
 resolvelib==1.0.1
-setuptools==80.10.2
+setuptools==83.0.0
 toml==0.10.2
 urllib3==2.8.0

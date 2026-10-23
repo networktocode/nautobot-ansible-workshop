@@ -6,7 +6,7 @@
 # true now and decide whether this event is worth acting on. Only then does it
 # render intent and diff it against the device — in check mode, always.
 #
-# 🔴 WHY IT RE-READS NAUTOBOT INSTEAD OF TRUSTING THE WEBHOOK PAYLOAD.
+# WHY IT RE-READS NAUTOBOT INSTEAD OF TRUSTING THE WEBHOOK PAYLOAD.
 #
 # Two reasons, and the second is the one that matters for the workshop.
 #
@@ -22,7 +22,7 @@
 #    The automation asks the source of truth what is true now. That is the same
 #    argument the whole workshop makes, applied to itself.
 #
-# ⚠️ NAUTOBOT HAS NO WEBHOOK CONDITION FIELD. Unlike NetBox, Nautobot's Webhook
+# NAUTOBOT HAS NO WEBHOOK CONDITION FIELD. Unlike NetBox, Nautobot's Webhook
 # model (verified against 3.2.3 `nautobot/extras/models/models.py`) has no
 # `conditions` attribute — the fields are content_types, type_create/update/
 # delete, payload_url, http_method, http_content_type, additional_headers,
@@ -34,7 +34,7 @@
 #
 # Verified against Nautobot 3.2.3 and AWX 24.6.1.
 
-# 🔴 `hosts: all`, NOT `hosts: localhost`. This play must be inside the limit.
+# `hosts: all`, NOT `hosts: localhost`. This play must be inside the limit.
 #
 # AWX launches this with `--limit leaf1` (the webhook passes the device that
 # changed). `--limit` applies to EVERY play in the playbook, so a play targeting
@@ -45,7 +45,7 @@
 #
 # and moves straight on. Observed 2026-09-02 on the first Lab 4 run.
 #
-# ⚠️ That is the worst possible failure for this playbook: the gate is SKIPPED,
+# That is the worst possible failure for this playbook: the gate is SKIPPED,
 # not failed, so the workflow proceeds to the approval node having checked
 # nothing. An approval gate whose precondition silently does not run is worse
 # than no gate, because the record says it was checked.
@@ -102,7 +102,7 @@
               Expected exactly one device named '{{ device_name }}' in Nautobot,
               found {{ (device_lookup.json.results | default([])) | length }}.
 
-        # 🔴 LOOP BREAKER. Stop before anything else if this event was not a
+        # LOOP BREAKER. Stop before anything else if this event was not a
         # status change.
         #
         # Node 3 runs write_back.yml, which updates the device in Nautobot —

@@ -28,7 +28,7 @@ logging host {{ device.config_context['syslog_host'] }}
 {% endif %}
 !
 {#
-  🔴 NEVER RENDER CONFIG FOR THE OUT-OF-BAND PORT.
+  NEVER RENDER CONFIG FOR THE OUT-OF-BAND PORT.
 
   Applying intent to the management interface, over the management interface,
   is how you disconnect yourself mid-commit. It happened on 2026-09-02: a stale

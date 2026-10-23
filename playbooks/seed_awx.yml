@@ -9,7 +9,7 @@
 #
 # That is the whole command. No exports, no --extra-vars.
 #
-# 🔴 THIS PLAYBOOK DELIBERATELY DOES NOT REQUIRE CONTROLLER_* ENV VARS.
+# THIS PLAYBOOK DELIBERATELY DOES NOT REQUIRE CONTROLLER_* ENV VARS.
 #
 # An earlier revision asserted CONTROLLER_HOST / CONTROLLER_USERNAME /
 # CONTROLLER_PASSWORD were exported and failed the run if they were not. That
@@ -29,7 +29,7 @@
 # still override them if set. Exporting them remains fine; it is no longer
 # load-bearing.
 #
-# ⚠️ awx_url is localhost because this runs on the VM, alongside the
+# awx_url is localhost because this runs on the VM, alongside the
 # `kubectl port-forward`. That is NOT the address AWX jobs use to reach
 # Nautobot — see nautobot_url_from_pods below.
 #
@@ -81,7 +81,7 @@
     ee_name: workshop-ee
     ee_image: "workshop-ee:1.0.0"
 
-    # 🔴 The URL AWX EXECUTION PODS use to reach Nautobot — not the one you use.
+    # The URL AWX EXECUTION PODS use to reach Nautobot — not the one you use.
     # AWX runs in Kubernetes; Nautobot is a plain container on the host. This is
     # the minikube gateway, which is only stable because § 3 of 15-single-stack
     # pins the subnet with --subnet=192.168.49.0/24. Assert it before trusting it:
@@ -95,7 +95,7 @@
     # service, and which one is correct depends entirely on who is asking.
     nautobot_url_local: "{{ lookup('env', 'NAUTOBOT_URL') | default('http://localhost:8001', true) }}"
 
-    # 🔴 HOW NAUTOBOT RUNS ON THIS HOST — and it changes three things below.
+    # HOW NAUTOBOT RUNS ON THIS HOST — and it changes three things below.
     #
     #   compose   nautobot-docker-compose: Nautobot is a set of containers.
     #             The hand-built stack. The default.
@@ -111,7 +111,7 @@
     nautobot_deployment: "{{ lookup('env', 'NAUTOBOT_DEPLOYMENT') | default('compose', true) }}"
     nautobot_env_file_native: /opt/nautobot/nautobot.env
 
-    # 🔴 The address NAUTOBOT'S CELERY WORKER uses to reach AWX — the same one
+    # The address NAUTOBOT'S CELERY WORKER uses to reach AWX — the same one
     # Lab 3's Job Button uses, and for the same reason. Never a bridge-gateway
     # literal that depends on Docker network creation order. See
     # troubleshooting.md § 8.
@@ -227,12 +227,12 @@
         state: present
 
     # ----------------------------------------------- execution environment
-    # 🔴 THE STOCK EE CANNOT RUN THIS WORKSHOP. Measured 2026-09-02:
+    # THE STOCK EE CANNOT RUN THIS WORKSHOP. Measured 2026-09-02:
     # quay.io/ansible/awx-ee:24.6.1 ships ansible-core 2.15.12, but
     # networktocode.nautobot needs >= 2.17.0 and arista.eos needs >= 2.16.0,
     # and neither pynautobot nor paramiko is present. See ee/execution-environment.yml.
     #
-    # ⚠️ `pull: missing` IS REQUIRED for a locally built image. The default is
+    # `pull: missing` IS REQUIRED for a locally built image. The default is
     # already `missing`, but stating it here is deliberate: `always` would make
     # AWX try to fetch workshop-ee from a registry that has never heard of it, and
     # the failure is an image-pull error that says nothing about why.
@@ -284,7 +284,7 @@
         wait: true
         state: present
 
-    # 🔴 SYNC BEFORE CREATING JOB TEMPLATES. This is not belt-and-braces.
+    # SYNC BEFORE CREATING JOB TEMPLATES. This is not belt-and-braces.
     #
     # `awx.awx.job_template` validates `playbook` against AWX's cached list of
     # files from the project's LAST SUCCESSFUL SYNC, and refuses with:
@@ -360,7 +360,7 @@
         update_on_launch: true
         state: present
 
-    # 🔴 SYNC IT NOW — do not rely on `update_on_launch`.
+    # SYNC IT NOW — do not rely on `update_on_launch`.
     #
     # Found 2026-09-24. Creating the source is not the same as populating it:
     # `update_on_launch` only fires when a job runs against the inventory, so a
@@ -391,7 +391,7 @@
     # Lab 0. The survey is the villain of the cold open: six facts Nautobot
     # already holds, retyped by a human, with no validation and no history.
     #
-    # 🔴 F14 CLOSED 2026-09-24 — THE SURVEY FIELDS ARE DELIBERATELY EMPTY.
+    # F14 CLOSED 2026-09-24 — THE SURVEY FIELDS ARE DELIBERATELY EMPTY.
     #
     # There are no `default:` keys below, and adding any back breaks the lab.
     #
@@ -406,7 +406,7 @@
     # (nautobot-ansible-workshop-guide/lab0-cold-open.md) so nobody has to hunt
     # for them. They just must not arrive already entered.
     #
-    # ⚠️ `required: true` is doing the work now. With no default and a required
+    # `required: true` is doing the work now. With no default and a required
     # field, AWX refuses to launch until all six are filled — so the friction is
     # enforced rather than merely encouraged.
     #
@@ -452,7 +452,7 @@
               required: true
         state: present
 
-    # 🔴 NO ask_inventory_on_launch. Removed 2026-09-24, and it must not come back.
+    # NO ask_inventory_on_launch. Removed 2026-09-24, and it must not come back.
     #
     # It used to be set here, with the note "this is what makes Lab 1 a dropdown
     # change rather than an edit". That was wrong on two counts.
@@ -469,7 +469,7 @@
     # The Inventory field on the template is the single place that decides, which
     # is also what reset_lab.yml relies on when it sets the inventory per lab.
     #
-    # ⚠️ The other ask_* flags below are unrelated and ARE required:
+    # The other ask_* flags below are unrelated and ARE required:
     # ask_variables_on_launch for the Job Button's and webhook's extra_vars, and
     # ask_limit_on_launch for the webhook's `limit`. Do not remove those.
 
@@ -573,7 +573,7 @@
         ask_limit_on_launch: true
         state: present
 
-    # 🔴 apply: true lives HERE, not in the playbook. turnup_apply.yml imports
+    # apply: true lives HERE, not in the playbook. turnup_apply.yml imports
     # the same diff_intent.yml that node 1 runs, which defaults to check mode.
     # Job template extra_vars override play vars, so this one flag is the entire
     # difference between "show me" and "do it" — and it guarantees the approver
@@ -612,7 +612,7 @@
         state: present
       register: wfjt
 
-    # ⚠️ NODES FIRST, LINKS SECOND — two passes, not one.
+    # NODES FIRST, LINKS SECOND — two passes, not one.
     # A node cannot reference a sibling that does not exist yet, so success_nodes
     # is set in a second pass once all three identifiers are known. This is the
     # pattern in the collection's own documentation for approval workflows.
@@ -671,7 +671,7 @@
         state: present
 
     # --------------------------------------------- OAuth2 token (Labs 3 and 4)
-    # 🔴 THE ONE CREDENTIAL THAT CANNOT BE PINNED. Everything else in this
+    # THE ONE CREDENTIAL THAT CANNOT BE PINNED. Everything else in this
     # workshop is declarative — both admin passwords and the Nautobot API token
     # are literals in config files. AWX generates this one, so it has to be
     # created and then carried to Nautobot, which is the single imperative step
@@ -680,7 +680,7 @@
     # Nautobot's Job Button (Lab 3) and webhook (Lab 4) both authenticate to AWX
     # with it.
     #
-    # ⚠️ THIS TASK IS NOT IDEMPOTENT, and it cannot easily be made so.
+    # THIS TASK IS NOT IDEMPOTENT, and it cannot easily be made so.
     #
     # The token value is returned only at creation — AWX never shows it again.
     # So the module always creates, and re-running this playbook mints another
@@ -701,7 +701,7 @@
       register: awx_token
 
     # -------------------------------------------- Lab 4: the Nautobot webhook
-    # 🔴 THIS IS A NAUTOBOT OBJECT CREATED BY THE AWX SEED, AND THAT IS ON
+    # THIS IS A NAUTOBOT OBJECT CREATED BY THE AWX SEED, AND THAT IS ON
     # PURPOSE. It needs two things that only exist once AWX has been seeded:
     # the workflow's numeric id, and the OAuth2 token to authenticate with.
     # Putting it in seed_nautobot.yml would mean running that playbook twice.
@@ -711,7 +711,7 @@
     # look-then-POST-or-PATCH shape used for Config Contexts and the Git
     # Repository in seed_nautobot.yml.
     #
-    # ⚠️ ORDER: THIS BLOCK RUNS *BEFORE* THE CONTAINER RESTART BELOW.
+    # ORDER: THIS BLOCK RUNS *BEFORE* THE CONTAINER RESTART BELOW.
     #
     # An earlier revision put it after, and it failed on the first Lab 4 run
     # with `Connection reset by peer` against localhost:8080. The restart task
@@ -739,7 +739,7 @@
       delay: 10
       until: webhook_lookup is succeeded
 
-    # 🔴 `!unsafe` IS LOAD-BEARING, AND `{% raw %}` IS NOT ENOUGH HERE.
+    # `!unsafe` IS LOAD-BEARING, AND `{% raw %}` IS NOT ENOUGH HERE.
     #
     # body_template is a Jinja2 template that NAUTOBOT renders, at webhook-send
     # time, against its own context: event, timestamp, model, username,
@@ -771,7 +771,7 @@
     # that passes through a variable. The injector above is the first case; this
     # is the second.
     #
-    # 🔴 `status_changed` BREAKS A FEEDBACK LOOP. Do not remove it.
+    # `status_changed` BREAKS A FEEDBACK LOOP. Do not remove it.
     #
     # Observed 2026-09-02: approving the workflow ran node 3, node 3 ran
     # write_back.yml, write_back.yml UPDATED THE DEVICE — and a device update is
@@ -881,7 +881,7 @@
 
     # ---- compose
     #
-    # 🔴 IT MUST GO IN creds.env — NOT A NEW FILE.
+    # IT MUST GO IN creds.env — NOT A NEW FILE.
     #
     # An earlier revision wrote environments/awx.env and told the operator to
     # wire it into docker-compose.local.yml by hand. That manual step is easy to

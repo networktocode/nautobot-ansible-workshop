@@ -11,7 +11,7 @@
 # Bake them into a custom execution environment with ansible-builder — same
 # reasoning as mirroring container images.
 
-# 🔴 EXACT PINS, NOT FLOORS — changed 2026-09-02.
+# EXACT PINS, NOT FLOORS — changed 2026-09-02.
 #
 # These were `>=` floors until the first execution environment was built, at
 # which point the problem became obvious: two builds on different days would
@@ -40,7 +40,7 @@ collections:
   # A dependency of arista.eos, named here so the network_cli connection plugin
   # version is decided by us rather than by whatever galaxy resolves that day.
   #
-  # ⚠️ The old floor said `>=6.0.0` and was simply wrong — arista.eos 12.2.0
+  # The old floor said `>=6.0.0` and was simply wrong — arista.eos 12.2.0
   # requires >= 8.5.2, so a 6.x pin could never have resolved. The measured
   # answer is 8.6.2.
   - name: ansible.netcommon

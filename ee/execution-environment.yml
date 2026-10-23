@@ -1,7 +1,7 @@
 ---
 # Custom execution environment for the Nautobot + Ansible workshop.
 #
-# 🔴 WHY THIS EXISTS. The stock EE cannot run this workshop's collections.
+# WHY THIS EXISTS. The stock EE cannot run this workshop's collections.
 #
 # Measured 2026-09-02 on the first Lab 4 run. `quay.io/ansible/awx-ee:24.6.1`
 # — the newest tagged EE, matching our AWX — ships **ansible-core 2.15.12**:
@@ -16,12 +16,12 @@
 #   arista.eos               requires_ansible >= 2.16.0   EE has 2.15.12
 #   pynautobot               needed by graphql_info        absent
 #
-# ⚠️ Lab 1 hid this. Its inventory sync passes on the stock EE because the
+# Lab 1 hid this. Its inventory sync passes on the stock EE because the
 # Nautobot inventory *plugin* uses plain HTTP, needs no pynautobot, and treats
 # the version mismatch as a warning. Only a MODULE run surfaces it — which is
 # why "the playbooks work from the VM" proved so much less than it looked.
 #
-# ⚠️ `awx-ee:latest` is not the answer either. It is built from devel, so it
+# `awx-ee:latest` is not the answer either. It is built from devel, so it
 # floats — the exact failure mode this project pins everything to avoid — and
 # it still would not carry pynautobot.
 #
@@ -38,7 +38,7 @@
 # 60 stacks this image has to be mirrored like every other — that is G10 /
 # the image-mirroring gap, deliberately not solved here.
 #
-# ⚠️ Pull policy must NOT be "always" for a locally loaded image — AWX would
+# Pull policy must NOT be "always" for a locally loaded image — AWX would
 # try to fetch `workshop-ee:1.0.0` from a registry that has never heard of it.
 # seed_awx.yml sets `pull: missing`.
 
@@ -53,7 +53,7 @@ images:
     name: quay.io/ansible/awx-ee:24.6.1
 
 dependencies:
-  # 🔴 WITHOUT THIS THE BUILD FAILS, AND THE ERROR NAMES THE WRONG THING.
+  # WITHOUT THIS THE BUILD FAILS, AND THE ERROR NAMES THE WRONG THING.
   #
   # awx-ee:24.6.1 is CentOS Stream 9, whose default `/usr/bin/python3` is
   # **3.9**. ansible-core 2.18 requires Python >= 3.11, so pip refuses:
@@ -92,7 +92,7 @@ dependencies:
     python3.12-devel [platform:rpm compile]
     gcc [platform:rpm compile]
 
-  # 🔴 ONE SOURCE. Relative to THIS file — ansible-builder resolves dependency
+  # ONE SOURCE. Relative to THIS file — ansible-builder resolves dependency
   # paths against the definition's own directory (user_definition.py,
   # `reference_path = os.path.dirname(self.filename)`), so this is the same
   # requirements file AWX uses at project-sync time. Do not copy it here; a
@@ -111,7 +111,7 @@ dependencies:
     # importable by the interpreter everything else now runs on.
     - receptorctl
 
-  # 🔴 WITHOUT THIS THE BUILD FAILS ON A COLLECTION WE DO NOT USE.
+  # WITHOUT THIS THE BUILD FAILS ON A COLLECTION WE DO NOT USE.
   #
   #   azure-cli-core 2.61.0 depends on paramiko<4.0.0 and >=2.0.8
   #   ERROR: ResolutionImpossible
@@ -129,7 +129,7 @@ dependencies:
   # correct fix, and it makes the build markedly faster — azure-cli-core alone
   # is a large dependency tree we would be compiling for nothing.
   #
-  # ⚠️ These collections REMAIN IN THE IMAGE, just without their Python
+  # These collections REMAIN IN THE IMAGE, just without their Python
   # dependencies. Nothing in this workshop touches them. If a stretch goal ever
   # does, it needs removing from this list, not adding back by hand.
   #
@@ -164,7 +164,7 @@ dependencies:
 # Re-measure after any deliberate bump and put the answer back in that file:
 #   docker run --rm -e HOME=/tmp --entrypoint ansible-galaxy workshop-ee:1.0.0 collection list
 #
-# ⚠️ The `exclude.all_from_collections` stanza above does NOT remove those
+# The `exclude.all_from_collections` stanza above does NOT remove those
 # collections from the image — they ship inside the awx-ee base and stay there.
 # It excludes their
 # PYTHON REQUIREMENTS from dependency resolution, which is what the build needed:

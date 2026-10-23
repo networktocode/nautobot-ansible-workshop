@@ -2,7 +2,7 @@
 # Reset the mutable state a lab leaves behind, so an attendee can be dropped at
 # the start of any lab.
 #
-# 🔴 DO NOT RUN THIS DIRECTLY. Use `scripts/reset.sh <lab>` in the instructor
+# DO NOT RUN THIS DIRECTLY. Use `scripts/reset.sh <lab>` in the instructor
 # guide — it also restores the git working tree, which the labs modify and this
 # playbook cannot see.
 #
@@ -12,10 +12,10 @@
 # pre-staging rule means the labs only ever *change* what is already there. So
 # "reset to lab N" is a short list of edits to undo — not a rebuild.
 #
-# 🔴 It must never rebuild AWX. Cold start is ~5 minutes; an attendee asking for
+# It must never rebuild AWX. Cold start is ~5 minutes; an attendee asking for
 # a reset is already behind.
 #
-# 🔴 And it deliberately does NOT run seed_awx.yml, which would be the obvious
+# And it deliberately does NOT run seed_awx.yml, which would be the obvious
 # shortcut. That playbook mints a fresh OAuth2 token and restarts Nautobot's
 # containers to publish it — one to two minutes, and it invalidates the token
 # the Lab 4 webhook is holding until the webhook is PATCHed again. Both are
@@ -60,7 +60,7 @@
 
     devices: [leaf1, leaf2]
 
-    # 🔴 THE ONLY THING THAT ACTUALLY VARIES BY LAB.
+    # THE ONLY THING THAT ACTUALLY VARIES BY LAB.
     #
     # Lab 1e is the moment the attendee repoints the job template from the
     # static inventory to the Nautobot-backed one. Everything before that

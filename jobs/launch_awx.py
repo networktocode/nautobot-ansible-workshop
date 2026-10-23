@@ -36,7 +36,7 @@ clicked. Changing the file requires the containers to be RECREATED
 (`invoke stop && invoke start`); `invoke restart` is docker compose restart,
 which reuses the container and its original environment.
 
-⚠️ AWX_HOST must be reachable FROM THE CELERY WORKER CONTAINER — this Job runs
+AWX_HOST must be reachable FROM THE CELERY WORKER CONTAINER — this Job runs
 there, not in the web container. Nautobot runs in docker-compose, AWX in minikube
 behind a port-forward on the host, so `localhost:8013` resolves to the worker
 container itself and will fail.
@@ -53,10 +53,10 @@ Docker network creation order — measured 172.18.0.1 on the validation VM. Sinc
 this value is stored in the Job Button config on every attendee stack, a per-host
 address breaks Lab 3 on an unpredictable subset.
 
-⚠️ The port-forward must be started with `--address 0.0.0.0`. The default binds
+The port-forward must be started with `--address 0.0.0.0`. The default binds
 127.0.0.1 only, which no container can reach.
 
-⚠️ The target Job Template needs "Prompt on launch" enabled for Variables
+The target Job Template needs "Prompt on launch" enabled for Variables
 (`ask_variables_on_launch: true`), otherwise AWX silently discards the extra_vars
 this Job sends.
 """

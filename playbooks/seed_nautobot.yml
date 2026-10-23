@@ -12,7 +12,7 @@
 # No exports needed. No -i inventory either: the play targets localhost. No
 # -u/-k: auth is the Nautobot API token, not SSH.
 #
-# 🔴 NAUTOBOT_URL / NAUTOBOT_TOKEN ARE OPTIONAL OVERRIDES, NOT REQUIREMENTS.
+# NAUTOBOT_URL / NAUTOBOT_TOKEN ARE OPTIONAL OVERRIDES, NOT REQUIREMENTS.
 # Both values are deterministic — every stack is http://localhost:8001 with the
 # pinned literal token from nautobot-ansible-workshop-instructor/00-credentials-and-addressing.md. Requiring
 # them as env vars made the playbook depend on shell state that does not survive
@@ -59,7 +59,7 @@
     # Corrected 2026-08-26: these were .3 and .2, copied from an unpinned
     # ContainerLab run where the nodes came up in reverse order.
     #
-    # 🔴 `status` IS PER DEVICE, AND leaf2 MUST NOT START Active.
+    # `status` IS PER DEVICE, AND leaf2 MUST NOT START Active.
     #
     # Found 2026-09-04 while building reset.sh. Both devices used to be seeded
     # `Active`, which makes **Lab 4 impossible on a clean stack**: step 4d tells
@@ -235,7 +235,7 @@
     # Registered: the Config Context below scopes itself to this role and needs
     # its UUID. The module returns the object whether it created it or found it
     # already there, so this is safe on a re-run.
-    #   🔴 TAGGED `reset` EVEN THOUGH A RESET NEVER CHANGES A ROLE. It is here
+    #   TAGGED `reset` EVEN THOUGH A RESET NEVER CHANGES A ROLE. It is here
     # for `role_leaf`, which the Config Context task below needs for its scope.
     # Without the tag, `reset.sh` skipped this task and died on an undefined
     # variable — found 2026-09-25, the first time reset.sh was ever run.
@@ -304,7 +304,7 @@
     #   state:   merge (default) | replace | delete
     #   objects: list of dicts, each with an `ip_address` key
     #
-    # 🔴 `replace`, NOT the default `merge`. This one bit hard on 2026-09-02.
+    # `replace`, NOT the default `merge`. This one bit hard on 2026-09-02.
     #
     # `merge` "adds associations without removing existing ones". So when the
     # ContainerLab addresses were corrected from .2/.3 to .11/.12 and this
@@ -574,7 +574,7 @@
       retries: 24
       delay: 5
 
-    # 🔴 Stuck on PENDING means the celery worker is not consuming the queue.
+    # Stuck on PENDING means the celery worker is not consuming the queue.
     # Nothing is wrong with the repository — check `docker ps` for
     # nautobot_docker_compose-celery_worker-1.
     - name: Report the sync outcome
@@ -611,7 +611,7 @@
           module raised on import. The traceback is in the sync log:
           {{ nb.url }}/extras/job-results/{{ sync_request.json.job_result.id }}/
 
-    # 🔴 Jobs import DISABLED. Nautobot will not run one until this is flipped,
+    # Jobs import DISABLED. Nautobot will not run one until this is flipped,
     # and the failure is silent from the button's point of view.
     - name: Enable the Job
       ansible.builtin.uri:

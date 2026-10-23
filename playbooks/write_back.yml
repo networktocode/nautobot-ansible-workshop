@@ -59,7 +59,7 @@
     # present on the 3.2 floor), not a free-text field. It must exist before a
     # device can reference it — hence this step before the device update.
     #
-    # 🔴 throttle: 1 IS LOAD-BEARING. Both leaves run the same EOS build, and
+    # throttle: 1 IS LOAD-BEARING. Both leaves run the same EOS build, and
     # SoftwareVersion is unique on (platform, version). Ansible runs this task
     # for every host in parallel, so without throttling both hosts check "does
     # it exist?", both get "no", and both INSERT. One wins; the other dies with:

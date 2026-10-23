@@ -1,6 +1,6 @@
 ---
 # Stage 1b — the Nautobot dynamic inventory that replaces static.ini.
-#   ⚠️ THIS FILE IS INTENTIONALLY EXECUTABLE (mode 755). Do not "fix" it.
+#   THIS FILE IS INTENTIONALLY EXECUTABLE (mode 755). Do not "fix" it.
 #   AWX will not offer a .yml file in its Inventory-file dropdown. From
 # awx/main/utils/ansible.py::could_be_inventory(), a candidate is accepted only
 # if it is named exactly `inventory`/`hosts`, ends in `.ini`, OR is executable —
@@ -93,7 +93,7 @@ rename_variables:
 # ---------------------------------------------------------------------- filters
 #   Restrict the inventory to Active devices only. Uncomment the two lines below
 # — remove the "# " from each — and nothing else needs changing.
-#   ⚠️ THE MAPPING FORM IS THE CORRECT ONE, and it is not what the option's type
+#   THE MAPPING FORM IS THE CORRECT ONE, and it is not what the option's type
 # suggests. `device_query_filters` is declared `elements: str`, which reads as if
 # entries were query-string fragments ("status=active"). They are not. The
 # plugin's validate_query_parameter() starts:
@@ -103,7 +103,7 @@ rename_variables:
 # A string is not a dict, so a string entry is DROPPED and every device still
 # appears — a silent no-op that looks like a working filter. The plugin's own
 # examples use the mapping form; the code agrees with the examples, not the type.
-#   ⚠️ AND THE VALUE IS CASE-SENSITIVE: `Active`, not `active`. Nautobot 3.x
+#   AND THE VALUE IS CASE-SENSITIVE: `Active`, not `active`. Nautobot 3.x
 # filters status by the Status object's NAME, and a wrong case is not a silent
 # miss — the API returns
 #     {"status":["Select a valid choice. active is not one of the available choices."]}

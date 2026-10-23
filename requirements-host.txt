@@ -21,7 +21,7 @@
 # layer down: what we pin stays put, what we do not pin moves quietly. Install
 # from this file and the six-package line becomes a first-bootstrap tool only.
 #
-# 🔴 setuptools IS PINNED BACK ON PURPOSE — 80.10.2, not the current release.
+# setuptools IS PINNED BACK ON PURPOSE — 80.10.2, not the current release.
 #
 # setuptools >= 81 no longer ships `pkg_resources`, and awxkit 24.6.1 (July 2024)
 # imports it at the top of its CLI. The whole `awx` command dies before doing
@@ -35,14 +35,14 @@
 # expensive. Nothing else here needs >= 81. Revisit only if awxkit releases a
 # version that has dropped the import — it is paused upstream along with AWX.
 #
-# ⚠️ AND NOTE WHAT THIS MEANS ABOUT LOCKFILES. Before 2026-09-22 this file said
+# AND NOTE WHAT THIS MEANS ABOUT LOCKFILES. Before 2026-09-22 this file said
 # setuptools==84.0.0, faithfully recorded from a real machine. It was a correct
 # record of a BROKEN environment: installing from it reproduced the breakage
 # exactly. A lockfile buys reproducibility, not correctness.
 #
 # --------------------------------------------------------------- WHAT IT IS NOT
 #
-# 🔴 NOT the execution environment's dependency list. The EE names its Python
+# NOT the execution environment's dependency list. The EE names its Python
 #    packages inline in `ee/execution-environment.yml` and takes collections
 #    from `collections/requirements.yml`. The host and the EE resolve their
 #    Python dependencies independently — so `cryptography` can legitimately
@@ -50,7 +50,7 @@
 #    run inside AWX. Nothing has broken on that yet; it is the class of thing
 #    that surfaces once and confusingly.
 #
-# 🔴 NOT named plain `requirements.txt`, deliberately. ansible-builder and a
+# NOT named plain `requirements.txt`, deliberately. ansible-builder and a
 #    good deal of AWX-adjacent tooling treat a root `requirements.txt` as the
 #    EE's Python list, and `collections/requirements.yml` already sits beside
 #    it for the EE and the project sync. Two files a directory apart, one for
@@ -65,7 +65,7 @@
 #
 # then restore this header. A pin that was not measured is a guess.
 #
-# ⚠️ Measured on BOTH architectures: arm64 (OrbStack, 2026-09-04) and amd64
+# Measured on BOTH architectures: arm64 (OrbStack, 2026-09-04) and amd64
 # (DigitalOcean, 2026-09-16). 21 of 22 identical; only urllib3 differed, and it
 # ships a single py3-none-any wheel, so that difference is time and not
 # architecture. All four compiled packages — cryptography, cffi, bcrypt,

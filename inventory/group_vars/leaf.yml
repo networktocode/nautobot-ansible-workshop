@@ -1,13 +1,12 @@
 ---
-# Stage 0 — group_vars for the `leaf` group.
+# Device config data for the `leaf` group.
 #
-# IMPORTANT: this file lives beside the inventory file (inventory/group_vars/),
-# NOT at the repo root. Ansible resolves group_vars relative to the inventory
-# file's directory or the playbook's directory. At the repo root it would be
-# silently ignored, which looks exactly like "my variables aren't applying."
+# This file sits beside the inventory (inventory/group_vars/), not at the repo
+# root: Ansible resolves group_vars relative to the inventory or the playbook,
+# and a copy at the repo root would be silently ignored.
 #
 # Lab 2 deletes this file and serves the same data from Nautobot Config
-# Contexts instead. Keep the key names identical so the template doesn't change.
+# Contexts. The key names match, so the template does not change.
 
 ntp_servers:
   - 10.0.0.1

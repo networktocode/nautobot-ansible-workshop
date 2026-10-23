@@ -1,25 +1,25 @@
 ---
-# Stage 2c — diff Nautobot's intent against what is actually on the device.
-#   THE BEAT: intent lives in Nautobot; the diff is against reality. Nothing is
-# changed unless you explicitly ask.
-#   Self-contained: fetches intent via GraphQL, renders the same template used in
-# Stage 2b, and compares it to the running config. No dependency on having run
-# render_intent.yml first.
-#   HOW TO RUN — check mode is the DEFAULT, so this is safe:
+# Lab 2 — diff Nautobot's intent against what is actually on the device.
+#
+# Fetches intent via GraphQL, renders templates/full_config.j2 (the same
+# template render_intent.yml uses) and compares it to the running config.
+# Nothing is changed unless you pass -e apply=true. Lab 4 reuses this playbook
+# for both the preview and the apply step.
+#
+# How to run (check mode is the default):
 #   export NAUTOBOT_URL="http://localhost:8001"
 #   export NAUTOBOT_TOKEN="<token>"
 #   ansible-playbook -i inventory/nautobot.yml playbooks/diff_intent.yml -u admin -k --diff
-#   To actually apply what the diff showed:
+# To apply what the diff showed:
 #   ... -u admin -k --diff -e apply=true
-#   NOTE: unlike Stage 2b, this one DOES need the devices reachable — it reads the
+#
+# Unlike render_intent.yml, this needs the devices reachable: it reads the
 # running config over network_cli.
-#   WHY NOT diff_against: intended?
-#   `diff_against: intended` compares the device's ENTIRE running config against
-#   a complete intended config. templates/full_config.j2 is a PARTIAL config
-#   (hostname, NTP, DNS, SNMP, syslog, interfaces), so that mode would report
-#   every unrelated line on the box as a difference. The default
-#   `diff_against: running` does a line-based comparison of just the lines we
-#   supply, which is the "what commands would this send" view we want.
+#
+# Why `diff_against: running` (the default) and not `intended`: `intended`
+# compares the device's entire running config against a complete intended
+# config. full_config.j2 is a partial config, so every unrelated line would be
+# reported as a difference. `running` compares only the lines supplied.
 
 - name: Diff Nautobot intent against the running device config
   hosts: all

@@ -1,12 +1,11 @@
 {#
-  Stage 2b — rendered entirely from ONE GraphQL response.
+  Device configuration rendered entirely from one GraphQL response (Lab 2).
 
-  Every value below comes from `device`, which is the result of a single query
-  against Nautobot. No REST round-trips, no group_vars, no survey.
+  Every value below comes from `device`, the result of a single query against
+  Nautobot (graphql/device_intent.gql). No REST round-trips, group_vars or survey.
 
-  `default()` guards are deliberate: a Config Context need not define every key,
-  and a lab device need not have VLANs or descriptions. A template that explodes
-  on the first missing optional field is a bad demo in front of 60 people.
+  The `default()` guards are deliberate: a Config Context need not define every
+  key, and a device need not have VLANs or descriptions.
 #}
 hostname {{ device.name }}
 !
@@ -28,23 +27,17 @@ logging host {{ device.config_context['syslog_host'] }}
 {% endif %}
 !
 {#
-  NEVER RENDER CONFIG FOR THE OUT-OF-BAND PORT.
+  Never render config for the management (out-of-band) interface.
 
-  Applying intent to the management interface, over the management interface,
-  is how you disconnect yourself mid-commit. It happened on 2026-09-02: a stale
-  IP left in Nautobot rendered `ip address 172.20.20.2/24` onto leaf2's
-  Management0, whose real address is .12. The commit renumbered the interface,
-  the SSH session died, `commit` never returned a prompt, and the job failed
-  with a 60-second timeout — after the device had already moved.
+  Applying intent to the interface you are connected through can disconnect
+  you mid-commit: a wrong address in Nautobot would renumber the interface, drop
+  the SSH session, and leave the job timing out after the device has changed.
+  Skipping management interfaces means no data error in Nautobot can take a
+  device off the network.
 
-  The stale IP was the bug and is fixed in seed_nautobot.yml (`state: replace`).
-  This guard is the second line of defence: with it, no data error in Nautobot
-  can take a device off the network. In front of sixty people that difference
-  matters more than the config it would have applied.
-
-  Note `default(false)` — if the GraphQL query ever stops returning mgmt_only,
-  this fails OPEN rather than silently skipping every interface and rendering
-  an empty intent that looks like "no drift".
+  `default(false)`: if the query ever stops returning mgmt_only, interfaces are
+  still rendered, rather than all being skipped and producing an empty intent
+  that looks like "no drift".
 #}
 {% for intf in device.interfaces | default([]) if not intf.get('mgmt_only', false) %}
 interface {{ intf.name }}

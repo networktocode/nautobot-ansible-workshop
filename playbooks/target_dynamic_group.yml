@@ -1,23 +1,20 @@
 ---
-# Stage 1c — target a Nautobot Dynamic Group, without plugin support for it.
-#   THE PROBLEM: the networktocode.nautobot inventory plugin cannot expose Dynamic
-# Groups as inventory groups. Its `group_by` has a fixed choices list (location,
-# role, platform, tenant, rack, tag, status, cluster, device_type, manufacturer,
-# is_virtual, services) and dynamic groups are not among them. So you cannot set
-# a Job Template's Limit to a dynamic group name.
-#   THE APPROACH: resolve membership at runtime from Nautobot's REST API and build
-# an Ansible group from it with add_host. Nautobot still owns the definition of
-# "which devices" — change the filter in Nautobot and this play targets a
-# different set, with nothing edited in AWX.
-#   Verified present in Nautobot 3.2.2 source:
-#   /api/extras/dynamic-groups/<pk>/members/   (DynamicGroupViewSet.members)
-#   HOW TO RUN:
+# Lab 1 — target a Nautobot Dynamic Group.
+#
+# The networktocode.nautobot inventory plugin cannot expose Dynamic Groups as
+# inventory groups (they are not among its `group_by` choices), so a Job
+# Template's Limit cannot name one. Instead, this play resolves membership at
+# runtime from /api/extras/dynamic-groups/<pk>/members/ and builds an Ansible
+# group with add_host. Nautobot still owns the definition of "which devices":
+# change the filter in Nautobot and this play targets a different set.
+#
+# How to run:
 #   export NAUTOBOT_URL="http://localhost:8001"
 #   export NAUTOBOT_TOKEN="<token>"
 #   ansible-playbook -i inventory/nautobot.yml playbooks/target_dynamic_group.yml -e dynamic_group_name="leaf-devices-dc1" -u admin -k
-#   NOTE ON add_host: because these hosts already exist in the Nautobot inventory,
-# add_host only adds them to a new group — it does NOT discard their hostvars.
-# ansible_host, config_context and everything else survive.
+#
+# These hosts already exist in the Nautobot inventory, so add_host only adds
+# them to a new group; their hostvars (ansible_host, config_context, ...) remain.
 
 - name: Resolve Dynamic Group membership into an Ansible group
   hosts: localhost

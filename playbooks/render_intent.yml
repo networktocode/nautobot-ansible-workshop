@@ -1,17 +1,18 @@
 ---
-# Stage 2b — fetch a device's full intent in ONE GraphQL query, then render it.
-#   WHAT THIS DEMONSTRATES: instead of many REST round-trips (device, then role,
-# then platform, then interfaces, then IPs...), a single GraphQL call returns
-# exactly the shape the template needs. That is the "one query drives the config"
-# beat of Lab 2.
-#   HOW TO RUN:
+# Lab 2 — fetch a device's full intent in one GraphQL query, then render it.
+#
+# Instead of many REST round-trips (device, role, platform, interfaces, IPs...),
+# a single GraphQL call returns exactly the shape the template needs.
+#
+# How to run:
 #   export NAUTOBOT_URL="http://localhost:8001"
 #   export NAUTOBOT_TOKEN="<token>"
 #   ansible-playbook -i inventory/nautobot.yml playbooks/render_intent.yml
-#   NOTE: no -u / -k needed. Every task is delegated to localhost, so this never
-# touches the devices — it only reads Nautobot and writes files locally. The
-# devices don't even have to be running.
-#   To inspect the raw response shape (useful on the first run, see below):
+#
+# No -u / -k needed: every task is delegated to localhost, so this only reads
+# Nautobot and writes files locally. The devices need not be running.
+#
+# To inspect the raw response shape:
 #   ansible-playbook -i inventory/nautobot.yml playbooks/render_intent.yml -e show_raw=true
 
 - name: Render config from Nautobot intent
@@ -31,15 +32,10 @@
       delegate_to: localhost
       run_once: true
 
-    # Query by NAME, not UUID.
+    # Query by name, not UUID: the inventory plugin does not expose the
+    # Nautobot device UUID as a hostvar, but `inventory_hostname` always exists.
     #
-    # The inventory plugin does NOT expose the Nautobot device UUID as a hostvar.
-    # Confirmed by reading the 6.2.0 source: hostvars come from a fixed set of
-    # extract_* methods (platform, role, location, primary_ip4, interfaces,
-    # config_context, tags, custom_fields, ...) and there is no extract_id.
-    # `inventory_hostname` always exists, so name is the dependable key.
-    #
-    # To see everything that IS available for a host:
+    # To see everything that is available for a host:
     #   ansible-inventory -i inventory/nautobot.yml --host leaf1 | jq 'keys'
     - name: Fetch the device's full intent in one GraphQL query
       networktocode.nautobot.graphql_info:
@@ -47,23 +43,19 @@
         token: "{{ lookup('env', 'NAUTOBOT_TOKEN') }}"
         query: "{{ lookup('file', playbook_dir + '/../graphql/device_intent.gql') }}"
         graph_variables:
-          # Nautobot's GraphQL filters are usually multi-value, hence a list.
-          # If the schema rejects it, check the arg type in GraphiQL's Docs pane
-          # and drop the brackets.
+          # Nautobot's GraphQL filters are multi-value, hence a list.
           device_name: ["{{ inventory_hostname }}"]
         validate_certs: false
       register: intent
       delegate_to: localhost
 
     - name: Show the raw response shape
-      # The exact key the module returns under is worth confirming once rather
-      # than assuming. Run with -e show_raw=true the first time.
+      # Run with -e show_raw=true to see exactly what the module returns.
       ansible.builtin.debug:
         var: intent
       when: show_raw | default(false) | bool
 
-    # `devices(...)` returns a LIST, so the result is data.devices[0] — unlike
-    # the singular `device(id:)` form, which returns one object.
+    # `devices(...)` returns a list, so the result is data.devices[0].
     - name: Fail with guidance if the result shape isn't what we expect
       ansible.builtin.assert:
         that:

@@ -1,14 +1,10 @@
 """Nautobot Jobs for the Nautobot + Ansible workshop.
 
 Nautobot discovers Jobs from a Git Repository that provides "jobs" by importing
-the top-level `jobs/` package (verified in Nautobot 3.2.2:
-`nautobot/extras/datasources/git.py` checks for a `jobs/` directory or a
-`jobs.py` file at the repository root).
+the top-level `jobs/` package. Each module here registers its own Jobs with
+`register_jobs()`, so importing it is enough.
 
-Since Nautobot 2.0, Jobs must be explicitly registered with `register_jobs()`.
-Each module here does its own registration, so importing it is enough.
-
-TO LOAD THESE INTO NAUTOBOT
+To load these into Nautobot
 ---------------------------
 Extensibility -> Git Repositories -> Add:
   Name:                 nautobot-ansible-workshop

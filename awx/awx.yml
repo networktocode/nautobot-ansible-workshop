@@ -1,7 +1,8 @@
 # awx/awx.yml
 #
-# Every image is pinned to an exact tag or digest. Verified 2026-08-25 against
-# the awx-operator 2.19.1 CRD and the upstream registries.
+# AWX instance for awx-operator 2.19.1. Every image is pinned to an exact tag
+# or digest, including those the operator would otherwise take from a floating
+# tag, so each deployment is identical.
 #
 #   kubectl apply -f awx/awx.yml
 #
@@ -19,17 +20,13 @@ spec:
   admin_user: admin
   admin_password_secret: awx-admin-password
 
-  # The AWX application itself.
-  #
-  # NOTE: the published quay.io/ansible/awx-operator:2.19.1 image bakes
-  # DEFAULT_AWX_VERSION=24.6.1 into its environment, so this already resolves
-  # to 24.6.1 without us. Pin it anyway — the manifest should say what it
-  # deploys rather than inherit it from someone else's image.
+  # The AWX application. awx-operator 2.19.1 already defaults to 24.6.1; it is
+  # pinned here so the manifest states what it deploys.
   image: quay.io/ansible/awx
   image_version: 24.6.1
 
   # Execution environments. The operator's default ee_images list contains a
-  # literal `quay.io/ansible/awx-ee:latest` entry — replace the whole list.
+  # literal `quay.io/ansible/awx-ee:latest` entry, so replace the whole list.
   control_plane_ee_image: quay.io/ansible/awx-ee:24.6.1
   ee_images:
     - name: AWX EE (24.6.1)
@@ -38,16 +35,16 @@ spec:
   init_container_image: quay.io/ansible/awx-ee
   init_container_image_version: 24.6.1
 
-  # Operator default is quay.io/centos/centos:stream9, a rolling tag.
-  # Digest as of 2026-08-19.
+  # Operator default is quay.io/centos/centos:stream9, a rolling tag; pinned
+  # here by digest.
   init_projects_container_image: quay.io/centos/centos@sha256:64e5a212e4f2e7b706dbd822968914bb8def7de0a7fdfd3bf248241f8758101c
 
-  # Operator default is `latest`, and sclorg rebuilds this weekly.
-  # WARNING: changing this after the database exists is a Postgres upgrade,
-  # not a tag swap. Pin once, before the first apply, and leave it.
+  # Operator default is `latest`, which is rebuilt regularly. Changing this
+  # after the database exists is a Postgres upgrade, not a tag swap: set it
+  # before the first apply and leave it.
   postgres_image: quay.io/sclorg/postgresql-15-c9s
   postgres_image_version: "20260819"
 
-  # Operator default is `7`, which was repointed on 2026-08-25 to 7.4.11.
+  # Operator default is the floating `7` tag.
   redis_image: docker.io/redis
   redis_image_version: "7.4.11"

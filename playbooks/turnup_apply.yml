@@ -1,31 +1,25 @@
 ---
-# Lab 4, node 3 of the `Site Turnup (gated)` workflow — everything after the
-# human said yes.
+# Lab 4, node 3 of the `Site Turnup (gated)` workflow.
 #
-# WHAT THIS IS: the only node in the workflow that changes anything. It applies
-# the config that node 1 showed the approver, then writes discovered state back
-# to Nautobot so the change log carries the AWX job ID.
+# The only node in the workflow that changes anything. It applies the config
+# that node 1 showed the approver, then writes discovered state back to
+# Nautobot so the change log carries the AWX job ID.
 #
-# IT RUNS ONLY IF THE APPROVAL NODE WAS APPROVED. That is not enforced here —
-# it is the workflow's edge from the approval node. If someone denies, or the
-# approval times out, AWX never starts this node and no device is touched.
+# It runs only after approval. That is enforced by the workflow's edge from the
+# approval node, not here: if the approval is denied or times out, AWX never
+# starts this node.
 #
-# `apply: true` IS SET ON THE AWX JOB TEMPLATE, NOT HERE. diff_intent.yml
-# defaults to check mode, and the job template's extra_vars override that. The
-# same playbook therefore backs both node 1 (preview) and node 3 (apply), which
-# is what guarantees the approver saw the change that actually gets made — two
-# separate playbooks could drift apart, and the drift would be invisible.
+# `apply: true` is set in the AWX job template's extra_vars, not here.
+# diff_intent.yml defaults to check mode, so the same playbook backs both node 1
+# (preview) and node 3 (apply), and the approver sees the change that is made.
 #
-# HOW TO RUN BY HAND:
+# How to run by hand:
 #   ansible-playbook -i inventory/nautobot.yml playbooks/turnup_apply.yml -u admin -k -e device_name=leaf1 -e apply=true --limit leaf1
 #
-# Verified against Nautobot 3.2.3 and AWX 24.6.1.
+# Tested with Nautobot 3.2.3 and AWX 24.6.1.
 
-# `hosts: all`, NOT `hosts: localhost` — see the long note in turnup_diff.yml.
-# AWX passes `--limit <device>`, which applies to every play, so a localhost
-# play matches nothing and is SKIPPED. Here that would skip the no-op guard
-# below, which is the one thing standing between a lost `apply: true` and a
-# false "approved and applied" entry in the audit trail.
+# `hosts: all`, not `hosts: localhost`, so the play is inside the job's limit
+# (see turnup_diff.yml). A skipped play here would skip the no-op guard below.
 - name: Announce what was approved
   hosts: all
   gather_facts: false
@@ -42,10 +36,8 @@
               - "Mode: {{ 'APPLY (changes will be made)' if (apply | default(false) | bool) else 'CHECK ONLY — apply is not set, nothing will change' }}"
               - "AWX job: {{ awx_job_id | default('local-run') }}"
 
-        # If this fires, the job template lost its extra_vars and the node would
-        # silently do nothing while reporting success — the worst possible
-        # outcome for an approval gate, because the record would say a change
-        # was applied.
+        # Without `apply: true` the node would change nothing yet report
+        # success, and the record would say an approved change was applied.
         - name: Refuse to run as a no-op
           ansible.builtin.assert:
             that: apply | default(false) | bool

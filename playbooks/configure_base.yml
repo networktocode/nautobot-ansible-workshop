@@ -1,25 +1,22 @@
 ---
-# Stage 0 — base configuration from a static inventory + survey.
+# Lab 0 — base configuration from a static inventory and an AWX survey.
 #
-# This playbook does NOT change for the rest of the workshop. Lab 1 swaps the
-# inventory underneath it; Lab 2 swaps where the variables come from. That the
-# playbook stays identical is the entire argument for a source of truth, so
-# resist the urge to "improve" it in later stages.
+# This playbook does not change for the rest of the workshop. Lab 1 swaps the
+# inventory underneath it; Lab 2 swaps where the variables come from. The
+# playbook staying identical is the point.
 
 - name: Base configuration
   hosts: all
   gather_facts: false
 
   pre_tasks:
-    # The AWX survey collects flat values (ntp_primary, ntp_secondary,
-    # dns_server) because a survey can't collect a list. The template wants
-    # lists. Bridge the two with set_fact.
+    # An AWX survey cannot collect a list, so it collects flat values
+    # (ntp_primary, ntp_secondary, dns_server) and set_fact builds the lists the
+    # template expects.
     #
-    # NOTE: this must be set_fact, not play `vars:`. Defining `ntp_servers` in
-    # `vars:` in terms of `ntp_servers` is a self-reference and Ansible fails
-    # with "recursive loop detected in template string". set_fact has higher
-    # precedence than group_vars, so it cleanly overrides — and when the survey
-    # vars are absent (local run), it's skipped and group_vars stands.
+    # This must be set_fact, not play `vars:`, which would be a self-reference
+    # ("recursive loop detected in template string"). set_fact outranks
+    # group_vars; when the survey vars are absent (local run) it is skipped.
     - name: Build NTP list from survey answers
       ansible.builtin.set_fact:
         ntp_servers: "{{ [ntp_primary, ntp_secondary] | reject('none') | list }}"

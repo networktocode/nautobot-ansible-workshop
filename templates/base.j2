@@ -1,14 +1,12 @@
 {#
-  Stage 0 base configuration template.
+  Base configuration template (Lab 0).
 
-  Variable precedence at work: when launched from AWX with the survey enabled,
-  the survey answers arrive as extra_vars, which outrank group_vars. That is the
-  cold open's whole argument — an operator retypes facts the network already
-  knows, and those typed values win over the source of truth.
+  When launched from AWX with the survey enabled, the survey answers arrive as
+  extra_vars, which outrank group_vars: values an operator types win over the
+  source of truth.
 
-  This same template is reused in Lab 2, unchanged, once the values come from
-  Nautobot Config Contexts instead of group_vars. Keeping it stable across the
-  swap is what makes the "nothing else changed" moment land.
+  Lab 2 reuses this template unchanged once the values come from Nautobot
+  Config Contexts instead of group_vars.
 #}
 hostname {{ inventory_hostname }}
 !

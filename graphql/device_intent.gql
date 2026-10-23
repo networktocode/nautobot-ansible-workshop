@@ -12,8 +12,7 @@ query ($device_name: [String]) {
       description
       enabled
       mode
-      # Used by full_config.j2 to refuse to render config for the out-of-band
-      # port. See the guard there — this field is why Lab 4's apply is safe.
+      # Used by full_config.j2 to skip the management (out-of-band) interface.
       mgmt_only
       ip_addresses { address }
       untagged_vlan { vid name }

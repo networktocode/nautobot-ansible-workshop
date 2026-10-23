@@ -1,40 +1,28 @@
 ---
-# Reset the mutable state a lab leaves behind, so an attendee can be dropped at
-# the start of any lab.
+# Reset the mutable state a lab leaves behind, so an attendee can start
+# cleanly at the beginning of any lab.
 #
-# DO NOT RUN THIS DIRECTLY. Use `scripts/reset.sh <lab>` in the instructor
-# guide — it also restores the git working tree, which the labs modify and this
-# playbook cannot see.
+# Normally run by the workshop's reset tooling rather than by hand. That
+# tooling also restores the git working tree (group_vars, nautobot.yml,
+# templates, jobs/, rendered/), which this playbook does not touch.
 #
-# ------------------------------------------------------------ WHAT IT DOES NOT DO
+# ---------------------------------------------------------- scope
 #
-# It creates nothing. Provisioning already created every object, and CLAUDE.md's
-# pre-staging rule means the labs only ever *change* what is already there. So
-# "reset to lab N" is a short list of edits to undo — not a rebuild.
+# A reset is split three ways:
+#   reset tooling      the git working tree
+#   seed_nautobot.yml  Nautobot objects, via `--tags reset`
+#   this playbook      1. write-back state on the devices (Labs 3 and 4)
+#                      2. the AWX Job Template's Inventory field (Lab 1e)
 #
-# It must never rebuild AWX. Cold start is ~5 minutes; an attendee asking for
-# a reset is already behind.
+# It creates nothing: every object exists from provisioning, and the labs only
+# change existing objects. It never rebuilds AWX, and it does not run
+# seed_awx.yml, which takes minutes and issues a new AWX token that the Lab 4
+# webhook would then need re-pointed to.
 #
-# And it deliberately does NOT run seed_awx.yml, which would be the obvious
-# shortcut. That playbook mints a fresh OAuth2 token and restarts Nautobot's
-# containers to publish it — one to two minutes, and it invalidates the token
-# the Lab 4 webhook is holding until the webhook is PATCHed again. Both are
-# unacceptable in a reset that has to finish in seconds.
-#
-# ------------------------------------------------------------- THE DIVISION OF WORK
-#
-#   reset.sh          git working tree (group_vars, nautobot.yml, templates,
-#                     jobs/, rendered/) — see the script
-#   seed_nautobot.yml Nautobot objects, via `--tags reset`. Reuses the seed's own
-#                     canonical values rather than keeping a second copy here.
-#   THIS PLAYBOOK     the two things neither of those covers:
-#                       1. write-back state ON the devices (Lab 3 and 4 wrote it)
-#                       2. the AWX Job Template's Inventory field (Lab 1e flipped it)
-#
-# HOW TO RUN (via the script, but for reference):
+# HOW TO RUN:
 #   ansible-playbook playbooks/reset_lab.yml -e lab=2
 #
-# Verified against Nautobot 3.2.3 and AWX 24.6.1.
+# Tested with Nautobot 3.2.3 and AWX 24.6.1.
 
 - name: Reset mutable lab state
   hosts: localhost
@@ -49,9 +37,8 @@
       validate_certs: false
 
   vars:
-    # Same defaults-with-env-override pattern as both seed playbooks — see the
-    # header of seed_awx.yml for why these are literals rather than required
-    # environment variables.
+    # Literal workshop defaults, each optionally overridden by an environment
+    # variable, as in both seed playbooks.
     nb_url: "{{ lookup('env', 'NAUTOBOT_URL') | default('http://localhost:8001', true) }}"
     nb_token: "{{ lookup('env', 'NAUTOBOT_TOKEN') | default('0123456789abcdef0123456789abcdef01234567', true) }}"
     awx_url: "{{ lookup('env', 'CONTROLLER_HOST') | default('http://localhost:8013', true) }}"
@@ -60,14 +47,9 @@
 
     devices: [leaf1, leaf2]
 
-    # THE ONLY THING THAT ACTUALLY VARIES BY LAB.
-    #
-    # Lab 1e is the moment the attendee repoints the job template from the
-    # static inventory to the Nautobot-backed one. Everything before that
-    # expects `Static (Lab 0)`; everything after expects `Nautobot (Lab 1)`.
-    #
-    # Every other object is identical at every level, because provisioning
-    # pre-creates all of them. That is what keeps this playbook short.
+    # The only setting that varies by lab. Lab 1e repoints the job template
+    # from the static inventory to the Nautobot-backed one, so Labs 0-1 expect
+    # `Static (Lab 0)` and Labs 2-4 expect `Nautobot (Lab 1)`.
     inventory_for_lab:
       "0": Static (Lab 0)
       "1": Static (Lab 0)
@@ -85,13 +67,10 @@
         success_msg: "Resetting to the start of lab {{ lab }}."
 
     # -------------------------------------------------- Nautobot: write-back state
-    # Labs 3d and 4 write discovered state onto the devices. The seed does not
-    # clear it — `networktocode.nautobot.device` only enforces the fields it is
-    # given — so an attendee reset to Lab 3 would find the serial and the job ID
-    # already populated and the whole beat pre-spoiled.
-    #
-    # `serial: ""` rather than null: the model uses a blank CharField, and null
-    # is rejected.
+    # Labs 3d and 4 write discovered state onto the device records. The seed
+    # does not clear it, because `networktocode.nautobot.device` only sets the
+    # fields it is given. `serial: ""` rather than null: the field is a
+    # CharField that rejects null.
     - name: Clear the state Lab 3 and Lab 4 wrote back
       ansible.builtin.uri:
         url: "{{ nb_url }}/api/dcim/devices/?name={{ item }}"
@@ -131,9 +110,8 @@
         inventory: "{{ inventory_for_lab[lab | string] }}"
         state: present
 
-    # Lab 1's payoff is watching the Nautobot inventory populate. If a previous
-    # attempt left the source unsynced the hosts are stale, and the lab's first
-    # check looks broken for a reason that has nothing to do with the attendee.
+    # Re-sync so the Nautobot inventory's hosts are current rather than left
+    # stale by a previous attempt.
     - name: Re-sync the Nautobot inventory source
       awx.awx.inventory_source_update:
         name: nautobot.yml

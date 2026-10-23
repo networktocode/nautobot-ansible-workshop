@@ -1,64 +1,39 @@
-"""Stage 3a — launch an AWX Job Template from a Nautobot device page.
+"""Lab 3 — launch an AWX Job Template from a Nautobot device page.
 
-WHY A NAUTOBOT JOB AND NOT A CUSTOM LINK
+Why a Nautobot Job and not a Custom Link
 ----------------------------------------
-A Custom Link is a templated URL: two minutes of work, and it just deep-links
-the operator into AWX's launch form. Fine, but it teaches nothing about Nautobot
-and leaves no record on the Nautobot side.
+A Custom Link is a templated URL that deep-links the operator into AWX's launch
+form. It leaves no record on the Nautobot side.
 
-A Job Button runs a real Nautobot **Job** — Nautobot's own automation engine.
-That matters for this workshop specifically, because the closing segment argues
-that AWX is sometimes the wrong tool and Nautobot Jobs the right one. It is a
-much more honest argument if attendees have actually run one.
-
-What a Job gives you that a Custom Link does not:
+A Job Button runs a Nautobot Job, which gives you:
   * server-side logic with the full Nautobot ORM in scope
   * a JobResult with logs, retained and searchable
   * RBAC on who may press the button
   * the ability to validate or enrich before anything reaches AWX
 
-Verified against Nautobot 3.2.2 source:
-  JobButtonReceiver, register_jobs -> exported from nautobot.apps.jobs
-  subclasses implement receive_job_button(self, obj)
-  logging is standard `self.logger`
+It also means attendees have run a Nautobot Job before the workshop discusses
+when a Nautobot Job is a better fit than AWX.
 
-CONFIGURATION (environment variables on the Nautobot worker):
-  AWX_HOST           http://host.docker.internal:8013   <- NOT localhost, see below
+Configuration
+-------------
+Environment variables on the Nautobot worker (playbooks/seed_awx.yml sets them):
+  AWX_HOST           base URL of AWX, as reached from the worker
   AWX_TOKEN          an AWX OAuth2 token
   AWX_JOB_TEMPLATE   name of the Job Template to launch
 
-All three are written by playbooks/seed_awx.yml into
-environments/creds.env, which is one of the two files
-(local.env, creds.env) that nautobot-docker-compose's `x-nautobot-base` anchor
-loads into nautobot, celery_worker and celery_beat. Do not invent a third env
-file — nothing reads it, and the failure surfaces only when a Job Button is
-clicked. Changing the file requires the containers to be RECREATED
-(`invoke stop && invoke start`); `invoke restart` is docker compose restart,
-which reuses the container and its original environment.
+AWX_HOST must be reachable from the Celery worker, which is where this Job
+runs. If Nautobot runs in containers, `localhost` is the container itself: use
+`host.docker.internal` (with `extra_hosts: ["host.docker.internal:host-gateway"]`
+on the worker service) rather than a Docker bridge gateway address, which
+varies between hosts. If Nautobot runs directly on the host, use an address the
+host can reach AWX on.
 
-AWX_HOST must be reachable FROM THE CELERY WORKER CONTAINER — this Job runs
-there, not in the web container. Nautobot runs in docker-compose, AWX in minikube
-behind a port-forward on the host, so `localhost:8013` resolves to the worker
-container itself and will fail.
-
-Use `host.docker.internal`, which requires this on BOTH the nautobot and
-celery_worker services in environments/docker-compose.local.yml:
-
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
-
-Do NOT hardcode a bridge gateway such as 172.17.0.1. That is the docker0 address;
-Nautobot's compose network gets its own, and which /16 it lands on depends on
-Docker network creation order — measured 172.18.0.1 on the validation VM. Since
-this value is stored in the Job Button config on every attendee stack, a per-host
-address breaks Lab 3 on an unpredictable subset.
-
-The port-forward must be started with `--address 0.0.0.0`. The default binds
-127.0.0.1 only, which no container can reach.
+When AWX is exposed with `kubectl port-forward`, start it with
+`--address 0.0.0.0`; the default binds 127.0.0.1 only.
 
 The target Job Template needs "Prompt on launch" enabled for Variables
-(`ask_variables_on_launch: true`), otherwise AWX silently discards the extra_vars
-this Job sends.
+(`ask_variables_on_launch: true`), otherwise AWX discards the extra_vars this
+Job sends.
 """
 
 import os

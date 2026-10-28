@@ -14,8 +14,7 @@
 # workshop's fixed URL and pinned token, so the playbook does not depend on
 # shell state that a new SSH session or non-interactive shell would lose.
 #
-# Idempotent and safe to re-run. Tasks tagged `reset` are re-run by the
-# workshop's reset tooling to restore the Nautobot objects the labs change.
+# Idempotent and safe to re-run.
 #
 # Order matters. Nautobot enforces referential integrity, so parents come first:
 #   LocationType → Location → Manufacturer → Platform → DeviceType → Role
@@ -118,7 +117,6 @@
       register: nb_ping
       failed_when: false
       changed_when: false
-      tags: [reset]
 
     - name: Explain it if Nautobot is not answering
       ansible.builtin.assert:
@@ -131,7 +129,6 @@
           `cd ~/nautobot-docker-compose && docker compose ps` and give it a
           minute if it is still migrating.
         success_msg: "Nautobot answering at {{ nb.url }}"
-      tags: [reset]
 
     # ------------------------------------------------- custom fields (Lab 3)
     # Written to by playbooks/write_back.yml. `key` is the programmatic name
@@ -205,9 +202,7 @@
         state: present
 
     # Registered because the Config Context below is scoped to this role and
-    # needs its UUID. Tagged `reset` for the same reason: the Config Context
-    # task is reset-tagged, and a tagged task must not depend on a register
-    # produced by an untagged one.
+    # needs its UUID.
     - name: Role
       networktocode.nautobot.role:
         <<: *nb
@@ -216,7 +211,6 @@
           - dcim.device
         state: present
       register: role_leaf
-      tags: [reset]
 
     # ----------------------------------------------------------------- devices
     - name: Devices
@@ -232,7 +226,6 @@
       loop: "{{ workshop_devices }}"
       loop_control:
         label: "{{ item.name }}"
-      tags: [reset]
 
     # -------------------------------------------------------------------- IPAM
     # IPAM comes before the interfaces, because the interface task binds the
@@ -332,7 +325,6 @@
           location:
             - "{{ site_name }}"
         state: present
-      tags: [reset]
 
     # ------------------------------------------- Config Context (Lab 2)
     # networktocode.nautobot 6.2.0 has no module for Config Contexts or their
@@ -347,7 +339,6 @@
           Accept: application/json
         status_code: 200
       register: schema_lookup
-      tags: [reset]
 
     - name: Config Context Schema — leaf-base-schema
       ansible.builtin.uri:
@@ -365,7 +356,6 @@
           data_schema: "{{ leaf_base_schema }}"
         status_code: [200, 201]
       register: schema_result
-      tags: [reset]
 
     - name: Look up the Config Context
       ansible.builtin.uri:
@@ -374,7 +364,6 @@
         headers: *nb_headers
         status_code: 200
       register: context_lookup
-      tags: [reset]
 
     - name: Config Context — leaf-base
       ansible.builtin.uri:
@@ -397,7 +386,6 @@
             - "{{ role_leaf.role.id }}"
           data: "{{ leaf_base_context }}"
         status_code: [200, 201]
-      tags: [reset]
 
     # ------------------------------------------- Secrets Group (Lab 3c)
     # Lab 3c compares how Nautobot and AWX hold device credentials. The secret

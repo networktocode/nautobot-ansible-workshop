@@ -306,7 +306,6 @@
     # Populate the inventory now rather than relying on `update_on_launch`,
     # which only fires when a job runs against it. Otherwise a fresh stack shows
     # Nautobot (Lab 1) with zero hosts and Lab 1's first check looks broken.
-    # reset_lab.yml performs the same sync.
     - name: Sync the Nautobot inventory source
       awx.awx.inventory_source_update:
         name: nautobot.yml
@@ -373,8 +372,8 @@
     # 2. A launch-time choice is not persisted. The template would still say
     #    "Static (Lab 0)", and Labs 2-4 would silently run against it.
     #
-    # The template's Inventory field is the single place that decides, which is
-    # also what reset_lab.yml relies on. The other ask_* flags below are
+    # The template's Inventory field is the single place that decides. The
+    # other ask_* flags below are
     # required: ask_variables_on_launch for the Job Button's and webhook's
     # extra_vars, and ask_limit_on_launch for the webhook's `limit`.
 

@@ -43,8 +43,7 @@ nautobot-ansible-workshop/
 │   ├── turnup_diff.yml           # Lab 4 workflow, preview step
 │   ├── turnup_apply.yml          # Lab 4 workflow, apply step
 │   ├── seed_nautobot.yml         # create every Nautobot object the labs use
-│   ├── seed_awx.yml              # create every AWX object the labs use
-│   └── reset_lab.yml             # reset lab state to the start of a lab
+│   └── seed_awx.yml              # create every AWX object the labs use
 ├── templates/
 │   ├── base.j2                   # Labs 0–1
 │   └── full_config.j2            # Lab 2 onward

@@ -651,7 +651,6 @@
           type_create: false
           type_update: true
           type_delete: false
-          enabled: true
           payload_url: "{{ awx_url_from_nautobot }}/api/v2/workflow_job_templates/{{ wfjt.id }}/launch/"
           http_method: POST
           http_content_type: application/json
@@ -683,19 +682,23 @@
           Nautobot. The `!unsafe` tag on it has been lost.
         success_msg: body_template is an unrendered string, as Nautobot needs.
 
-    - name: Create the webhook
+    # Created disabled. The attendee enables it in Lab 4 as the step that arms
+    # the trigger, so no device update in Labs 1-3 (such as Lab 3's write-back)
+    # starts a workflow they did not launch.
+    - name: Create the webhook, disabled until Lab 4
       ansible.builtin.uri:
         url: "{{ nautobot_url_local }}/api/extras/webhooks/"
         method: POST
         headers: *nb_hdrs
         body_format: json
-        body: "{{ webhook_body }}"
+        body: "{{ webhook_body | combine({'enabled': false}) }}"
         status_code: 201
       when: (webhook_lookup.json.results | default([])) | length == 0
 
     # PATCH rather than skip: the token is new on every run, so an existing
     # webhook carries a stale Authorization header and would get a 401 from
-    # AWX, a failure Nautobot does not surface.
+    # AWX, a failure Nautobot does not surface. `enabled` is left out of the
+    # PATCH so a re-run keeps whatever state the attendee has set.
     - name: Update the existing webhook with the current token and workflow id
       ansible.builtin.uri:
         url: "{{ nautobot_url_local }}/api/extras/webhooks/{{ (webhook_lookup.json.results | first).id }}/"

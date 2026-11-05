@@ -7,7 +7,7 @@
 #
 # Why it re-reads Nautobot instead of trusting the webhook payload:
 #   1. The payload does not carry the status name. Related objects are
-#      serialised as `{"id": ..., "object_type": ..., "url": ...}`, so
+#      serialized as `{"id": ..., "object_type": ..., "url": ...}`, so
 #      `{{ data.status.name }}` in the webhook body would render empty.
 #   2. A webhook is a notification, not a source of truth. By the time it is
 #      delivered it may be stale, so the automation asks the source of truth

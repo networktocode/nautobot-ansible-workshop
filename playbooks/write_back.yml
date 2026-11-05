@@ -58,7 +58,7 @@
     # throttle: 1 is required. Both leaves run the same EOS build and
     # SoftwareVersion is unique on (platform, version); run in parallel, both
     # hosts would try to create it and one would fail with a UniqueViolation.
-    # Only this task is serialised.
+    # Only this task is serialized.
     - name: Ensure the discovered software version exists in Nautobot
       networktocode.nautobot.software_version:
         <<: *nb
@@ -91,10 +91,10 @@
           (job ref: {{ job_ref }}). See Extensibility -> Change Log.
 
 # ---------------------------------------------------------------------------
-# Why LLDP neighbours go into a custom field rather than Cable objects
+# Why LLDP neighbors go into a custom field rather than Cable objects
 #
-# Modelling discovered neighbours as dcim.Cable is the fuller answer, but it
-# needs interface-name normalisation (Et1 vs Ethernet1), handling of existing
+# Modeling discovered neighbors as dcim.Cable is the fuller answer, but it
+# needs interface-name normalization (Et1 vs Ethernet1), handling of existing
 # cables, both termination types and the right status. A JSON custom field
 # captures the same data in one task. Creating real cables is a stretch goal.
 # ---------------------------------------------------------------------------
